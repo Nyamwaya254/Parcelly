@@ -1,6 +1,6 @@
 from enum import Enum
 from sqlalchemy.types import Enum as SAEnum
-from sqlmodel import Column, Relationship, SQLModel, Field
+from sqlmodel import Column, Relationship, SQLModel, Field, String
 
 from org.models import Organisation
 
@@ -14,7 +14,10 @@ class User(SQLModel,table= True):
     first_name: str
     last_name: str
     email: str
-    is_verified: bool = Field(default=False)
+    # is_verified: bool = Field(default=False)
+    password_hash: str = Field(...,
+                               description="Hashed Password")
+    
     # parcels_sent: List[Parcel] = Relationship(
     #     back_populates="sender",
     #     sa_relationship_kwargs={"cascade": "all, delete-orphan"},
@@ -23,7 +26,7 @@ class User(SQLModel,table= True):
     #     back_populates="receiver",
     #     sa_relationship_kwargs={"cascade": "all, delete-orphan"},
     # )  
-    organisation_id: int = Field(default=None, foreign_key="organisation.id", nullable=True)
+    organisation_id: int = Field(default=None, foreign_key="organisation.id", nullable=False)
     organisation : "Organisation" = Relationship(
         back_populates= "users",
     )

@@ -1,12 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+
 from sqlmodel import Session, select
 
+from auth.dependancy import get_auth_service
 from auth.models import User, UserRole
-from auth.schemas import UserCreate, UserRead
+from auth.schemas import LoginRequest, LoginResponse, UserCreate, UserRead
 from auth.security import hash_password
+from auth.service import AuthService
 from db.db import get_session
 
-router = APIRouter(prefix= "/auth", tags=["auth"])
+router = APIRouter(prefix= "/auth", tags=["Authentication"])
+
 
 @router.post("/signup")
 def signup(payload: UserCreate, session: Session = Depends(get_session)):
@@ -31,7 +35,8 @@ def signup(payload: UserCreate, session: Session = Depends(get_session)):
         first_name= first_name,
         last_name= last_name,
         email= email_norm,
-        password= pwd_hash,
+        password_hash = pwd_hash,
+        organisation_id=payload.organisation_id,
     )
     user.role =UserRole.ADMIN
     session.add(user)
@@ -40,3 +45,8 @@ def signup(payload: UserCreate, session: Session = Depends(get_session)):
 
     #return UserREad to the user
     return UserRead.model_validate(user)
+
+@router.post("/login",response_model=LoginResponse)
+def login(login_data:LoginRequest, auth_service: AuthService = Depends(get_auth_service)):
+    '''Login endpoint that returns JWT access token'''
+    return auth_service.login(login_data)
